@@ -1,10 +1,30 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpRight, Download, Users, Sparkles, FileText, Zap, TrendingUp, ChevronRight, Brain, Target } from 'lucide-react';
+import { ArrowUpRight, Download, Users, Sparkles, FileText, Zap, TrendingUp, ChevronRight, Brain, Target, Clock, BookOpen } from 'lucide-react';
 import blogData from '../../data/blogData.json';
-import article1 from '../images/article-images/article-1.jpg'; // Using as feature image
-import article4 from '../images/article-images/article-4.jpg'; // Using for another block
+import article1 from '../images/article-images/article-1.jpg';
+import article2 from '../images/article-images/article-2.jpg';
+import article3 from '../images/article-images/article-3.jpg';
+import article4 from '../images/article-images/article-4.jpg';
+import article5 from '../images/article-images/article-5.jpg';
+import article6 from '../images/article-images/article-6.jpg';
 import '../css/CategoryGrid.css';
+
+// Article thumbnail images mapping
+const articleImages = [article1, article2, article3, article4, article5, article6];
+
+// Get article image based on article ID
+const getArticleImage = (articleId) => {
+  let hash = 0;
+  const str = articleId;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  const imageIndex = Math.abs(hash) % articleImages.length;
+  return articleImages[imageIndex];
+};
 
 // Reusable hook for CSS fade-in animation
 const useFadeIn = (delay = 0, threshold = 0.1) => {
@@ -231,6 +251,77 @@ const InterviewCard = () => {
 };
 
 
+// Article Card Component for Grid Display
+const ArticleCard = ({ article, index }) => {
+  const { ref, isVisible } = useFadeIn(0, 0.2);
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    sessionStorage.setItem('blogScrollPosition', window.scrollY.toString());
+    sessionStorage.setItem('skipHeroAnimation', 'true');
+    navigate(`/blog/article/${article.id}`);
+  };
+
+  // Get category info
+  const category = blogData.categories.find(cat => cat.id === article.category);
+  const categoryName = category ? category.name : article.category;
+
+  return (
+    <div
+      ref={ref}
+      onClick={handleClick}
+      className={`group relative bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-cyan-300 hover:shadow-xl transition-all duration-300 cursor-pointer category-css-animate-wrapper ${isVisible ? 'category-animate-fade-in-up' : ''}`}
+      style={isVisible ? {
+        animationDelay: `${index * 0.1}s`
+      } : {}}
+    >
+      {/* Image Section */}
+      <div className="relative w-full h-48 overflow-hidden bg-slate-100">
+        <img
+          src={getArticleImage(article.id)}
+          alt={article.title}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Category Badge */}
+        <div className="absolute top-3 left-3">
+          <span className="inline-block px-3 py-1 bg-white/90 backdrop-blur-sm text-cyan-700 text-xs font-bold rounded-full shadow-sm">
+            {categoryName}
+          </span>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="p-6">
+        <h3 className="text-xl font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-cyan-600 transition-colors leading-tight">
+          {article.title}
+        </h3>
+
+        <p className="text-slate-600 text-sm line-clamp-3 mb-4 leading-relaxed">
+          {article.excerpt}
+        </p>
+
+        {/* Meta Info */}
+        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+          <div className="flex items-center gap-4 text-xs text-slate-500">
+            <span className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" />
+              {article.readTime}
+            </span>
+            <span className="flex items-center gap-1">
+              <BookOpen className="w-3.5 h-3.5" />
+              {article.date}
+            </span>
+          </div>
+
+          <ArrowUpRight className="w-5 h-5 text-cyan-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Category Button with CSS animation
 const CategoryButton = ({ cat, index }) => {
   const { ref, isVisible } = useFadeIn(0, 0.2);
@@ -249,21 +340,51 @@ const CategoryButton = ({ cat, index }) => {
 };
 
 const CategoryGrid = () => {
-  // Pick a featured article (e.g., the first one from the list)
+  // Pick a featured article
   const featuredArticle = blogData.articles.find(a => a.id === 'article-3-1') || blogData.articles[0];
+
+  // Get articles shown in timeline (first 3 from each phase)
+  const timelineArticleIds = new Set();
+  blogData.timeline.forEach(phase => {
+    phase.articles.slice(0, 3).forEach(articleId => {
+      timelineArticleIds.add(articleId);
+    });
+  });
+
+  // Get articles NOT fully shown in timeline (4th+ articles from each phase)
+  const additionalArticles = blogData.articles.filter(article => {
+    // Exclude the featured article
+    if (article.id === featuredArticle.id) return false;
+
+    // Find which phase this article belongs to
+    for (const phase of blogData.timeline) {
+      const indexInPhase = phase.articles.indexOf(article.id);
+      // Include if article is 4th or later in its phase (index >= 3)
+      if (indexInPhase >= 3) return true;
+    }
+    return false;
+  });
+
+  // Get all other articles (for variety, show all except featured)
+  const allOtherArticles = blogData.articles
+    .filter(article => article.id !== featuredArticle.id)
+    .slice(0, 9); // Limit to 9 articles for clean 3x3 grid
+
+  // Use additional articles if available, otherwise use all other articles
+  const articlesToShow = additionalArticles.length > 0 ? additionalArticles.slice(0, 9) : allOtherArticles;
 
   return (
     <section className="py-24 bg-slate-50 relative overflow-hidden">
       {/* Background Decoration */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-      
+
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         {/* Section Header */}
         <HeaderSection />
 
         {/* Bento Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
-          
+
           {/* 1. Editor's Pick (Large 2x2 Card) */}
           <EditorsPickCard featuredArticle={featuredArticle} />
 
@@ -273,12 +394,31 @@ const CategoryGrid = () => {
           {/* 3. Interview Intelligence Card (1x1) */}
           <InterviewCard />
 
+        </div>
 
+        {/* More Articles Section */}
+        <div className="mt-20">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <h3 className="text-3xl font-bold text-slate-900 mb-2">
+                More <span className="text-cyan-600">Articles</span>
+              </h3>
+              <p className="text-slate-600">
+                深入探索更多职业发展策略和技巧
+              </p>
+            </div>
+          </div>
 
+          {/* Articles Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {articlesToShow.map((article, index) => (
+              <ArticleCard key={article.id} article={article} index={index} />
+            ))}
+          </div>
         </div>
 
         {/* Categories Pills - For navigation */}
-        <div className="mt-12">
+        <div className="mt-16">
           <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Browse by Pipeline Phase</p>
           <div className="flex flex-wrap gap-3">
             {blogData.categories.map((cat, i) => (
