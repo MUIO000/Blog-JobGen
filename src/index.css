@@ -1,5 +1,10 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* 自定义样式可以在这里添加 */
+/* Custom Font Family */
+body {
+  font-family: 'Inter', 'Poppins', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Custom styles can be added here */
 

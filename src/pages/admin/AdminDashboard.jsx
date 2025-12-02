@@ -79,12 +79,14 @@ const AdminDashboard = () => {
   // Handle delete article
   const handleDelete = async (articleId) => {
     try {
+      console.log('Deleting article with Firestore ID:', articleId);
       await deleteArticle(articleId);
       setArticles(articles.filter((a) => a.id !== articleId));
       setDeleteConfirm(null);
+      alert('Article deleted successfully!');
     } catch (error) {
       console.error('Error deleting article:', error);
-      alert('删除失败，请重试');
+      alert('Delete failed: ' + error.message);
     }
   };
 
@@ -98,7 +100,7 @@ const AdminDashboard = () => {
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">文章管理系统</h1>
+              <h1 className="text-xl font-bold text-slate-900">Article Management</h1>
               <p className="text-xs text-slate-500">Blog-JobGen Admin</p>
             </div>
           </div>
@@ -112,7 +114,7 @@ const AdminDashboard = () => {
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              退出登录
+              Sign Out
             </button>
           </div>
         </div>
@@ -129,7 +131,7 @@ const AdminDashboard = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="搜索文章标题、分类或作者..."
+              placeholder="Search by title, category or author..."
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
@@ -140,7 +142,7 @@ const AdminDashboard = () => {
             className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
           >
             <Plus className="w-5 h-5" />
-            <span>新建文章</span>
+            <span>New Article</span>
           </button>
         </div>
 
@@ -149,7 +151,7 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-500 mb-1">总文章数</p>
+                <p className="text-sm text-slate-500 mb-1">Total Articles</p>
                 <p className="text-3xl font-bold text-slate-900">{articles.length}</p>
               </div>
               <div className="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center">
@@ -161,7 +163,7 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-500 mb-1">搜索结果</p>
+                <p className="text-sm text-slate-500 mb-1">Search Results</p>
                 <p className="text-3xl font-bold text-slate-900">{filteredArticles.length}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -173,7 +175,7 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-500 mb-1">分类数量</p>
+                <p className="text-sm text-slate-500 mb-1">Categories</p>
                 <p className="text-3xl font-bold text-slate-900">
                   {new Set(articles.map(a => a.category)).size}
                 </p>
@@ -192,22 +194,22 @@ const AdminDashboard = () => {
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                    标题
+                    Title
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                    分类
+                    Category
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                    作者
+                    Author
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                    日期
+                    Date
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                    阅读时间
+                    Read Time
                   </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                    操作
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -217,7 +219,7 @@ const AdminDashboard = () => {
                     <td colSpan="6" className="px-6 py-12 text-center">
                       <div className="flex items-center justify-center gap-2 text-slate-500">
                         <div className="w-5 h-5 border-2 border-slate-300 border-t-cyan-500 rounded-full animate-spin" />
-                        <span>加载中...</span>
+                        <span>Loading...</span>
                       </div>
                     </td>
                   </tr>
@@ -227,7 +229,7 @@ const AdminDashboard = () => {
                       <div className="flex flex-col items-center gap-2 text-slate-500">
                         <AlertCircle className="w-12 h-12 text-slate-300" />
                         <p className="text-sm">
-                          {searchTerm ? '没有找到匹配的文章' : '暂无文章'}
+                          {searchTerm ? 'No matching articles found' : 'No articles yet'}
                         </p>
                       </div>
                     </td>
@@ -268,16 +270,16 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => navigate(`/admin/article/edit/${article.id}`)}
+                            onClick={() => navigate(`/admin/article/${article.id}`)}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="编辑"
+                            title="Edit"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(article.id)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="删除"
+                            title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -301,13 +303,13 @@ const AdminDashboard = () => {
                 <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">确认删除</h3>
-                <p className="text-sm text-slate-600">此操作无法撤销</p>
+                <h3 className="text-lg font-bold text-slate-900">Confirm Delete</h3>
+                <p className="text-sm text-slate-600">This action cannot be undone</p>
               </div>
             </div>
 
             <p className="text-slate-600 mb-6">
-              您确定要删除这篇文章吗？删除后将无法恢复。
+              Are you sure you want to delete this article? This cannot be recovered.
             </p>
 
             <div className="flex gap-3">
@@ -315,13 +317,13 @@ const AdminDashboard = () => {
                 onClick={() => setDeleteConfirm(null)}
                 className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors"
               >
-                取消
+                Cancel
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirm)}
                 className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
               >
-                确认删除
+                Confirm Delete
               </button>
             </div>
           </div>

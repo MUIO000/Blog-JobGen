@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Mail, Linkedin, Twitter, Github, Send } from 'lucide-react';
 import { fadeInUp, scaleIn } from '../../utils/animations';
+import { EXTERNAL_LINKS } from '../../config/externalLinks';
 
 const CTASection = () => {
   return (
@@ -97,7 +98,9 @@ const CTASection = () => {
             variants={fadeInUp}
           >
             <motion.a
-              href="#"
+              href={EXTERNAL_LINKS.social.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-colors shadow-lg"
               whileHover={{ scale: 1.1, y: -2 }}
               whileTap={{ scale: 0.9 }}
@@ -106,7 +109,9 @@ const CTASection = () => {
             </motion.a>
             
             <motion.a
-              href="#"
+              href={EXTERNAL_LINKS.social.twitter}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-colors shadow-lg"
               whileHover={{ scale: 1.1, y: -2 }}
               whileTap={{ scale: 0.9 }}
@@ -115,7 +120,9 @@ const CTASection = () => {
             </motion.a>
             
             <motion.a
-              href="#"
+              href={EXTERNAL_LINKS.social.github}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-colors shadow-lg"
               whileHover={{ scale: 1.1, y: -2 }}
               whileTap={{ scale: 0.9 }}

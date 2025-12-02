@@ -19,7 +19,8 @@ import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Terminal, FileCode, Rocket, Beaker, Tag, Scroll, ArrowRight } from 'lucide-react';
 import { fadeInLeft, fadeInRight, timelineItem } from '../../utils/animations';
-import blogData from '../../data/blogData.json';
+import { useBlogData } from '../../context/BlogDataContext';
+import { EXTERNAL_LINKS } from '../../config/externalLinks';
 import '../css/TimelineSection.css';
 
 // Import phase images
@@ -48,22 +49,24 @@ const phaseImages = [
   phase6Image   // Phase 6: logs
 ];
 
-// Article thumbnail images for Recommended Logs cards
+// Article thumbnail images for Recommended Logs cards (fallback)
 const articleImages = [article1, article2, article3, article4, article5, article6];
 
-// Randomly shuffle function for article images
-const getRandomArticleImage = (articleId) => {
-  // Create a deterministic but seemingly random selection based on article ID
-  // This ensures the same article always gets the same image (good for preloading)
-  // Uses a simple hash-like function to distribute images more randomly
-  let hash = 0;
-  const str = articleId;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
+// Get article image - prioritize Firebase image, fallback to local placeholder
+const getArticleImage = (article) => {
+  // If article has image from Firebase, use it
+  if (article?.image) {
+    return article.image;
   }
-  // Make sure we get a positive number
+  
+  // Fallback to local placeholder based on articleId hash
+  const articleId = article?.id || '';
+  let hash = 0;
+  for (let i = 0; i < articleId.length; i++) {
+    const char = articleId.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
   const imageIndex = Math.abs(hash) % articleImages.length;
   return articleImages[imageIndex];
 };
@@ -121,6 +124,7 @@ const HeaderSection = () => {
 const FiberOpticTimeline = () => {
   const containerRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+  const { blogData, loading } = useBlogData();
 
   // Single scroll listener for entire timeline (optimization: 1 instead of 7)
   const { scrollYProgress } = useScroll({
@@ -211,12 +215,13 @@ const FiberOpticTimeline = () => {
 
         {/* Timeline Steps */}
         <div className="space-y-48 md:space-y-56 relative z-10">
-          {blogData.timeline.map((step, index) => (
+          {!loading && blogData.timeline.map((step, index) => (
             <TimelineNode
               key={step.id}
               step={step}
               index={index}
               scrollYProgress={scrollYProgress}
+              articles={blogData.articles}
             />
           ))}
         </div>
@@ -226,16 +231,16 @@ const FiberOpticTimeline = () => {
   );
 };
 
-const TimelineNode = ({ step, index, scrollYProgress }) => {
+const TimelineNode = ({ step, index, scrollYProgress, articles }) => {
   const nodeRef = useRef(null);
   const [isActive, setIsActive] = useState(false);
 
   const imageOnRight = index % 2 === 0; // Phase 1, 3, 5: image right
   const PhaseIcon = phaseIcons[step.step] || Terminal;
 
-  // Get relevant articles
-  const articles = blogData.articles.filter(article =>
-    step.articles.includes(article.id)
+  // Get relevant articles from props
+  const stepArticles = (articles || []).filter(article =>
+    step.articles?.includes(article.id)
   ).slice(0, 3);
 
   // Optimized: Single IntersectionObserver instead of individual useScroll
@@ -285,7 +290,7 @@ const TimelineNode = ({ step, index, scrollYProgress }) => {
       {/* Left Column */}
       <div className={`pl-16 md:pl-0 ${imageOnRight ? 'md:col-start-1 md:pr-8' : 'md:col-start-1 md:pr-8'}`}>
         {imageOnRight ? (
-          <ContentCard step={step} articles={articles} isActive={isActive} />
+          <ContentCard step={step} articles={stepArticles} isActive={isActive} />
         ) : (
           <ImageCard step={step} icon={PhaseIcon} index={index} scrollYProgress={scrollYProgress} />
         )}
@@ -296,7 +301,7 @@ const TimelineNode = ({ step, index, scrollYProgress }) => {
         {imageOnRight ? (
           <ImageCard step={step} icon={PhaseIcon} index={index} scrollYProgress={scrollYProgress} />
         ) : (
-          <ContentCard step={step} articles={articles} isActive={isActive} />
+          <ContentCard step={step} articles={stepArticles} isActive={isActive} />
         )}
       </div>
 
@@ -348,7 +353,7 @@ const ArticleCard = ({ article, index }) => {
         {/* Thumbnail Image - Optimized */}
         <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border border-slate-200 bg-slate-100">
           <img
-            src={getRandomArticleImage(article.id)}
+            src={getArticleImage(article)}
             alt={article.title}
             decoding="async"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
@@ -438,7 +443,7 @@ const ContentCard = ({ step, articles, isActive }) => {
       {/* CTA Button */}
       <button
         className="mt-4 px-5 py-2.5 bg-slate-900 text-white rounded-lg text-sm font-semibold shadow-lg hover:bg-cyan-600 hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-2"
-        onClick={() => window.location.href = step.cta.link}
+        onClick={() => window.open(EXTERNAL_LINKS.timeline[step.step] || EXTERNAL_LINKS.main.website, '_blank', 'noopener,noreferrer')}
       >
         {step.cta.text}
         <ArrowRight className="w-4 h-4" />

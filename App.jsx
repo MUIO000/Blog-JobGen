@@ -1,11 +1,12 @@
 /**
  * Standalone Blog Application
  *
- * 这是一个独立的 Blog 应用入口
- * 可以单独运行，不依赖主应用
+ * This is the entry point for the standalone Blog app
+ * It can run independently without relying on the main application
  */
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BlogDataProvider } from './src/context/BlogDataContext';
 import BlogHome from './src/pages/BlogHome';
 import ArticlePage from './src/pages/ArticlePage';
 import AdminLogin from './src/pages/admin/AdminLogin';
@@ -14,8 +15,9 @@ import ArticleEditor from './src/pages/admin/ArticleEditor';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <BlogDataProvider>
+      <BrowserRouter>
+        <Routes>
         {/* Public Routes */}
         <Route path="/" element={<BlogHome />} />
         <Route path="/blog" element={<BlogHome />} />
@@ -28,6 +30,7 @@ function App() {
         <Route path="/admin/article/:id" element={<ArticleEditor />} />
       </Routes>
     </BrowserRouter>
+    </BlogDataProvider>
   );
 }
 

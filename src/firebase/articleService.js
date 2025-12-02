@@ -34,8 +34,13 @@ export const getAllArticles = async () => {
     const querySnapshot = await getDocs(q);
 
     const articles = [];
-    querySnapshot.forEach((doc) => {
-      articles.push({ id: doc.id, ...doc.data() });
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      articles.push({ 
+        ...data,
+        id: docSnap.id,  // Firestore document ID (for delete/update)
+        articleId: data.id || docSnap.id  // Keep original article ID for display
+      });
     });
 
     return articles;
@@ -115,46 +120,53 @@ export const deleteArticle = async (articleId) => {
   }
 };
 
-// ==================== Image Upload ====================
+// ==================== Image Upload (Cloudinary) ====================
 
 /**
- * Upload an image to Firebase Storage
+ * Upload an image to Cloudinary
  * @param {File} file - The image file to upload
- * @param {string} folder - The folder name (e.g., 'article-images')
- * @returns {Promise<string>} - The download URL of the uploaded image
+ * @returns {Promise<string>} - The secure URL of the uploaded image
  */
-export const uploadImage = async (file, folder = 'article-images') => {
+export const uploadImage = async (file) => {
   try {
-    const timestamp = Date.now();
-    const fileName = `${timestamp}-${file.name}`;
-    const storageRef = ref(storage, `${folder}/${fileName}`);
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-    // Upload the file
-    const snapshot = await uploadBytes(storageRef, file);
+    if (!cloudName || !uploadPreset || cloudName === 'your_cloud_name') {
+      throw new Error('Cloudinary configuration is missing. Please check your .env file.');
+    }
 
-    // Get the download URL
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
 
-    return downloadURL;
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'Image upload failed');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error('Error uploading image to Cloudinary:', error);
     throw error;
   }
 };
 
 /**
- * Delete an image from Firebase Storage
- * @param {string} imageUrl - The full URL of the image to delete
+ * Delete an image (Not implemented for Cloudinary unsigned)
  */
 export const deleteImage = async (imageUrl) => {
-  try {
-    const imageRef = ref(storage, imageUrl);
-    await deleteObject(imageRef);
-    return true;
-  } catch (error) {
-    console.error('Error deleting image:', error);
-    throw error;
-  }
+  console.warn('Delete image is not supported for unsigned Cloudinary uploads from client-side.');
+  return true;
 };
 
 // ==================== Categories ====================

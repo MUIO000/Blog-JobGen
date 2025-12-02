@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Download, Users, Sparkles, FileText, Zap, TrendingUp, ChevronRight, Brain, Target, Clock, BookOpen } from 'lucide-react';
-import blogData from '../../data/blogData.json';
+import { useBlogData } from '../../context/BlogDataContext';
 import article1 from '../images/article-images/article-1.jpg';
 import article2 from '../images/article-images/article-2.jpg';
 import article3 from '../images/article-images/article-3.jpg';
@@ -10,15 +10,21 @@ import article5 from '../images/article-images/article-5.jpg';
 import article6 from '../images/article-images/article-6.jpg';
 import '../css/CategoryGrid.css';
 
-// Article thumbnail images mapping
+// Article thumbnail images mapping (fallback)
 const articleImages = [article1, article2, article3, article4, article5, article6];
 
-// Get article image based on article ID
-const getArticleImage = (articleId) => {
+// Get article image - prioritize Firebase image, fallback to local placeholder
+const getArticleImage = (article) => {
+  // If article has image from Firebase, use it
+  if (article?.image) {
+    return article.image;
+  }
+  
+  // Fallback to local placeholder based on articleId hash
+  const articleId = article?.id || '';
   let hash = 0;
-  const str = articleId;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
+  for (let i = 0; i < articleId.length; i++) {
+    const char = articleId.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash;
   }
@@ -132,7 +138,7 @@ const EditorsPickCard = ({ featuredArticle }) => {
             {/* Background Image */}
             <div className="absolute inset-0">
               <img 
-                src={article1} 
+                src={getArticleImage(featuredArticle)} 
                 alt="Featured Article" 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -252,7 +258,7 @@ const InterviewCard = () => {
 
 
 // Article Card Component for Grid Display
-const ArticleCard = ({ article, index }) => {
+const ArticleCard = ({ article, index, categories }) => {
   const { ref, isVisible } = useFadeIn(0, 0.2);
   const navigate = useNavigate();
 
@@ -263,7 +269,7 @@ const ArticleCard = ({ article, index }) => {
   };
 
   // Get category info
-  const category = blogData.categories.find(cat => cat.id === article.category);
+  const category = categories.find(cat => cat.id === article.category);
   const categoryName = category ? category.name : article.category;
 
   return (
@@ -278,7 +284,7 @@ const ArticleCard = ({ article, index }) => {
       {/* Image Section */}
       <div className="relative w-full h-48 overflow-hidden bg-slate-100">
         <img
-          src={getArticleImage(article.id)}
+          src={getArticleImage(article)}
           alt={article.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
@@ -340,38 +346,56 @@ const CategoryButton = ({ cat, index }) => {
 };
 
 const CategoryGrid = () => {
+  const { blogData, loading } = useBlogData();
+
+  // Loading state
+  if (loading) {
+    return (
+      <section className="py-24 bg-slate-50 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
+        </div>
+      </section>
+    );
+  }
+
   // Pick a featured article
   const featuredArticle = blogData.articles.find(a => a.id === 'article-3-1') || blogData.articles[0];
 
   // Get articles shown in timeline (first 3 from each phase)
   const timelineArticleIds = new Set();
   blogData.timeline.forEach(phase => {
-    phase.articles.slice(0, 3).forEach(articleId => {
+    (phase.articles || []).slice(0, 3).forEach(articleId => {
       timelineArticleIds.add(articleId);
     });
   });
 
-  // Get articles NOT fully shown in timeline (4th+ articles from each phase)
-  const additionalArticles = blogData.articles.filter(article => {
+  // Get articles to show in "More Articles" section:
+  // 1. Articles that are 4th+ in their timeline phase
+  // 2. Articles not in any timeline phase (newly added articles)
+  const articlesToShow = blogData.articles.filter(article => {
     // Exclude the featured article
-    if (article.id === featuredArticle.id) return false;
+    if (article.id === featuredArticle?.id) return false;
 
-    // Find which phase this article belongs to
+    // Check if article is in any timeline phase
+    let isInTimeline = false;
+    let isAfterThird = false;
+    
     for (const phase of blogData.timeline) {
-      const indexInPhase = phase.articles.indexOf(article.id);
-      // Include if article is 4th or later in its phase (index >= 3)
-      if (indexInPhase >= 3) return true;
+      const indexInPhase = (phase.articles || []).indexOf(article.id);
+      if (indexInPhase !== -1) {
+        isInTimeline = true;
+        // Include if article is 4th or later in its phase (index >= 3)
+        if (indexInPhase >= 3) {
+          isAfterThird = true;
+        }
+        break;
+      }
     }
-    return false;
-  });
 
-  // Get all other articles (for variety, show all except featured)
-  const allOtherArticles = blogData.articles
-    .filter(article => article.id !== featuredArticle.id)
-    .slice(0, 9); // Limit to 9 articles for clean 3x3 grid
-
-  // Use additional articles if available, otherwise use all other articles
-  const articlesToShow = additionalArticles.length > 0 ? additionalArticles.slice(0, 9) : allOtherArticles;
+    // Show if: not in timeline at all (new article) OR is 4th+ in timeline
+    return !isInTimeline || isAfterThird;
+  }).slice(0, 9); // Limit to 9 articles for clean 3x3 grid
 
   return (
     <section className="py-24 bg-slate-50 relative overflow-hidden">
@@ -403,16 +427,13 @@ const CategoryGrid = () => {
               <h3 className="text-3xl font-bold text-slate-900 mb-2">
                 More <span className="text-cyan-600">Articles</span>
               </h3>
-              <p className="text-slate-600">
-                深入探索更多职业发展策略和技巧
-              </p>
             </div>
           </div>
 
           {/* Articles Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {articlesToShow.map((article, index) => (
-              <ArticleCard key={article.id} article={article} index={index} />
+              <ArticleCard key={article.id} article={article} index={index} categories={blogData.categories} />
             ))}
           </div>
         </div>

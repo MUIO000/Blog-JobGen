@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { Linkedin, Twitter } from 'lucide-react';
+import { EXTERNAL_LINKS } from '../config/externalLinks';
 
 const BlogLayout = ({ children }) => {
   const location = useLocation();
@@ -45,7 +46,7 @@ const BlogLayout = ({ children }) => {
                 className="px-6 py-2 bg-gradient-to-r from-sky-500 to-cyan-500 text-white rounded-full font-semibold shadow-md hover:shadow-lg"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.location.href = '/interview-prep'}
+                onClick={() => window.open(EXTERNAL_LINKS.main.interviewPrep, '_blank', 'noopener,noreferrer')}
               >
                 Try JobGen Free
               </motion.button>
@@ -100,9 +101,9 @@ const BlogLayout = ({ children }) => {
               <h4 className="font-semibold mb-4 text-sky-400">Resources</h4>
               <ul className="space-y-2 text-sm text-slate-300">
                 <li><a href="/blog" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Interview Questions</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Resume Templates</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">STAR Method Guide</a></li>
+                <li><a href={EXTERNAL_LINKS.main.website} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Interview Questions</a></li>
+                <li><a href={EXTERNAL_LINKS.main.resumeTemplates} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Resume Templates</a></li>
+                <li><a href={EXTERNAL_LINKS.main.starMethod} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">STAR Method Guide</a></li>
               </ul>
             </div>
 
@@ -110,10 +111,10 @@ const BlogLayout = ({ children }) => {
             <div>
               <h4 className="font-semibold mb-4 text-sky-400">Company</h4>
               <ul className="space-y-2 text-sm text-slate-300">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href={EXTERNAL_LINKS.company.about} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">About Us</a></li>
+                <li><a href={EXTERNAL_LINKS.company.contact} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href={EXTERNAL_LINKS.company.privacy} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href={EXTERNAL_LINKS.company.terms} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Terms of Service</a></li>
               </ul>
             </div>
           </div>
@@ -124,10 +125,10 @@ const BlogLayout = ({ children }) => {
               © 2025 JobGen. All rights reserved.
             </p>
             <div className="flex gap-6">
-              <a href="#" className="text-slate-400 hover:text-white transition-colors">
+              <a href={EXTERNAL_LINKS.social.linkedin} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">
                 <Linkedin className="w-5 h-5" strokeWidth={2} />
               </a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors">
+              <a href={EXTERNAL_LINKS.social.twitter} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">
                 <Twitter className="w-5 h-5" strokeWidth={2} />
               </a>
             </div>

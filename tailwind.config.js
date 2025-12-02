@@ -1,3 +1,3 @@
-// Tailwind CSS v4 使用 CSS 配置，不需要这个文件
-// 样式配置在 src/index.css 中
+// Tailwind CSS v4 uses CSS configuration, this file is not required
+// Style configuration is in src/index.css
 

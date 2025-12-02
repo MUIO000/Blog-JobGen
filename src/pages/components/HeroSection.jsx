@@ -1,7 +1,8 @@
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ArrowDown, Terminal, Code2, Sparkles } from 'lucide-react';
 import { fadeInUp, staggerContainer } from '../../utils/animations';
+import Spline from '@splinetool/react-spline';
 
 const TypewriterText = ({ disabled = false }) => {
   const fullText = "waiting for input";
@@ -53,40 +54,71 @@ const TypewriterText = ({ disabled = false }) => {
 };
 
 const HeroSection = ({ disableAnimations = false }) => {
+  // Mouse interaction state
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  // Smooth spring animation for mouse movement
+  const mouseX = useSpring(x, { stiffness: 40, damping: 25 });
+  const mouseY = useSpring(y, { stiffness: 40, damping: 25 });
+
+  useEffect(() => {
+    if (disableAnimations) return;
+    
+    const handleMouseMove = (e) => {
+      const { innerWidth, innerHeight } = window;
+      // Normalize mouse position from -1 to 1
+      x.set((e.clientX - innerWidth / 2) / (innerWidth / 2));
+      y.set((e.clientY - innerHeight / 2) / (innerHeight / 2));
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [x, y, disableAnimations]);
+
+  // Parallax transforms for background orbs
+  const orb1X = useTransform(mouseX, [-1, 1], [30, -30]);
+  const orb1Y = useTransform(mouseY, [-1, 1], [30, -30]);
+  const orb2X = useTransform(mouseX, [-1, 1], [-40, 40]);
+  const orb2Y = useTransform(mouseY, [-1, 1], [-40, 40]);
+  
+  // 3D Tilt transform for Terminal
+  const terminalRotateX = useTransform(mouseY, [-1, 1], [5, -5]);
+  const terminalRotateY = useTransform(mouseX, [-1, 1], [-5, 5]);
+
   return (
     <motion.section 
-      className="relative w-full min-h-[90vh] bg-gradient-to-br from-white via-sky-50 to-cyan-50 flex flex-col justify-start items-center overflow-hidden pt-24 md:pt-32"
+      className="relative w-full min-h-[90vh] flex flex-col justify-start items-center overflow-hidden pt-12 md:pt-14 perspective-1000"
+      style={{ backgroundColor: 'rgb(239, 250, 255)' }}
       initial={disableAnimations ? false : "hidden"}
       animate={disableAnimations ? false : "visible"}
       variants={disableAnimations ? undefined : staggerContainer}
     >
       {/* A. Background Elements */}
-      {/* 1. Grid Background (Light) */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e912_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e912_1px,transparent_1px)] bg-[size:32px_32px]"></div>
       
-      {/* 2. Floating Orbs */}
+      {/* Floating Orbs with Parallax */}
       <motion.div 
         className="absolute top-20 left-20 w-72 h-72 bg-sky-300/20 rounded-full blur-3xl"
+        style={{ x: orb1X, y: orb1Y }}
         animate={disableAnimations ? undefined : {
           scale: [1, 1.2, 1],
           opacity: [0.3, 0.5, 0.3],
         }}
         transition={disableAnimations ? undefined : {
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut"
+          scale: { duration: 8, repeat: Infinity, ease: "easeInOut" },
+          opacity: { duration: 8, repeat: Infinity, ease: "easeInOut" }
         }}
       />
       <motion.div 
         className="absolute bottom-20 right-20 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl"
+        style={{ x: orb2X, y: orb2Y }}
         animate={disableAnimations ? undefined : {
           scale: [1.2, 1, 1.2],
           opacity: [0.4, 0.3, 0.4],
         }}
         transition={disableAnimations ? undefined : {
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut"
+          scale: { duration: 10, repeat: Infinity, ease: "easeInOut" },
+          opacity: { duration: 10, repeat: Infinity, ease: "easeInOut" }
         }}
       />
 
@@ -94,12 +126,11 @@ const HeroSection = ({ disableAnimations = false }) => {
         
         {/* B. Left Content */}
         <div className="space-y-8 text-center lg:text-left">
-          {/* Badge */}
+          {/* Badge with Hover Effect */}
           <motion.div 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-sky-200 shadow-sm text-sm font-medium text-sky-700"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-sky-200 shadow-sm text-sm font-medium text-sky-700 cursor-default hover:shadow-md hover:border-sky-300 transition-all"
             variants={disableAnimations ? undefined : fadeInUp}
-            initial={disableAnimations ? false : undefined}
-            animate={disableAnimations ? false : undefined}
+            whileHover={{ scale: 1.05 }}
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
@@ -111,125 +142,70 @@ const HeroSection = ({ disableAnimations = false }) => {
 
           <motion.h1 
             className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 tracking-tight leading-[1.1]"
+            style={{ fontFamily: 'Poppins, Inter, sans-serif' }}
             variants={disableAnimations ? undefined : fadeInUp}
-            initial={disableAnimations ? false : undefined}
-            animate={disableAnimations ? false : undefined}
           >
             Don't just apply.
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600">
-              Deploy Your Career.
+            <span className="relative inline-block group">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 bg-[length:200%_auto] animate-gradient">
+                Deploy Your Career.
+              </span>
+              {/* Shine Effect */}
+              <motion.span 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 pointer-events-none"
+                initial={{ x: '-100%' }}
+                animate={{ x: '200%' }}
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut", repeatDelay: 2 }}
+              />
             </span>
           </motion.h1>
           
           <motion.p 
             className="text-xl text-slate-600 max-w-xl mx-auto lg:mx-0 leading-relaxed"
             variants={disableAnimations ? undefined : fadeInUp}
-            initial={disableAnimations ? false : undefined}
-            animate={disableAnimations ? false : undefined}
           >
             The definitive documentation for the modern developer's job search. 
-            From <code className="bg-sky-100 px-2 py-1 rounded text-sky-700 font-mono text-base">init</code> resume 
-            to <code className="bg-emerald-100 px-2 py-1 rounded text-emerald-700 font-mono text-base">merge</code> offer.
+            From <code className="bg-sky-100 px-2 py-1 rounded text-sky-700 font-mono text-base hover:bg-sky-200 transition-colors cursor-help">init</code> resume 
+            to <code className="bg-emerald-100 px-2 py-1 rounded text-emerald-700 font-mono text-base hover:bg-emerald-200 transition-colors cursor-help">merge</code> offer.
           </motion.p>
 
           {/* CTA Buttons */}
           <motion.div 
             className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4"
             variants={disableAnimations ? undefined : fadeInUp}
-            initial={disableAnimations ? false : undefined}
-            animate={disableAnimations ? false : undefined}
           >
-            <button 
-              className="group px-8 py-4 bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 hover:-translate-y-0.5"
+            <motion.button 
+              className="group relative px-8 py-4 bg-gradient-to-r from-sky-500 to-cyan-500 text-white rounded-2xl font-semibold overflow-hidden shadow-lg shadow-sky-500/25"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => {
                 const timeline = document.getElementById('timeline-start');
                 timeline?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              <Code2 className="w-5 h-5" />
-              Start Documentation
-              <ArrowDown className="w-4 h-4 group-hover:translate-y-1 transition-transform" />
-            </button>
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+              <span className="relative flex items-center justify-center gap-2">
+                <Code2 className="w-5 h-5" />
+                Start Documentation
+                <ArrowDown className="w-4 h-4 group-hover:translate-y-1 transition-transform" />
+              </span>
+            </motion.button>
 
           </motion.div>
         </div>
 
-        {/* C. Right Visual (Terminal - Light Theme) */}
+        {/* C. Right Visual (Spline 3D Scene) */}
         <motion.div 
-          className="hidden lg:block relative"
+          className="hidden lg:block relative h-[600px] w-full perspective-1000"
           initial={disableAnimations ? false : { opacity: 0, x: 20 }}
           animate={disableAnimations ? false : { opacity: 1, x: 0 }}
-          transition={disableAnimations ? undefined : { duration: 0.8, delay: 0.2 }}
+          transition={disableAnimations ? undefined : { duration: 1.2, delay: 0.2 }}
         >
-          <div className="relative rounded-2xl bg-white border-2 border-slate-200 shadow-2xl overflow-hidden font-mono text-sm">
-            {/* Terminal Header */}
-            <div className="flex items-center px-4 py-3 bg-gradient-to-r from-slate-50 to-sky-50 border-b border-slate-200 gap-2">
-              <div className="w-3 h-3 rounded-full bg-rose-400" />
-              <div className="w-3 h-3 rounded-full bg-amber-400" />
-              <div className="w-3 h-3 rounded-full bg-emerald-400" />
-              <div className="ml-2 text-slate-500 text-xs font-medium">user@jobgen:~/career-2026</div>
-            </div>
-            
-            {/* Terminal Body */}
-            <div className="p-6 space-y-3 bg-gradient-to-br from-slate-50 to-white">
-              <div className="flex gap-2 text-slate-700">
-                <span className="text-emerald-500 font-bold">➜</span>
-                <span className="text-sky-500 font-bold">~</span>
-                <span className="font-medium">npm install job-offers --global</span>
-              </div>
-              
-              <div className="text-slate-500 py-1 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-1 rounded-full bg-sky-400 animate-pulse"></div>
-                  [INFO] Analyzing market trends...
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-1 rounded-full bg-sky-400 animate-pulse"></div>
-                  [INFO] Optimizing resume keywords...
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-slate-600 text-sm font-medium">
-                  <span>Building Resume Artifacts...</span>
-                  <span className="text-emerald-600 font-semibold">Done (0.4s)</span>
-                </div>
-                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full"
-                    initial={disableAnimations ? false : { width: 0 }}
-                    animate={disableAnimations ? false : { width: "90%" }}
-                    transition={disableAnimations ? undefined : { duration: 1.5, delay: 0.5 }}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-slate-600 text-sm font-medium">
-                   <span>ATS Compatibility Check...</span>
-                   <span className="text-sky-600 font-semibold">98/100</span>
-                </div>
-                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                   <motion.div 
-                     className="h-full bg-gradient-to-r from-sky-400 to-cyan-500 rounded-full"
-                     initial={disableAnimations ? false : { width: 0 }}
-                     animate={disableAnimations ? false : { width: "98%" }}
-                     transition={disableAnimations ? undefined : { duration: 1.5, delay: 1 }}
-                   />
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-2 text-slate-700">
-                <span className="text-emerald-500 font-bold">➜</span>
-                <span className="text-sky-500 font-bold">~</span>
-                <TypewriterText disabled={disableAnimations} />
-              </div>
-            </div>
+          <div className="relative h-full w-full rounded-2xl overflow-hidden bg-transparent">
+            <Spline scene="https://prod.spline.design/i1odrbXEaFz7O0AK/scene.splinecode" />
           </div>
-          
-          {/* Decorative Backdrop */}
-          <div className="absolute -z-10 -bottom-4 -right-4 w-full h-full bg-gradient-to-br from-sky-100 to-cyan-100 rounded-2xl opacity-50" />
+        
         </motion.div>
       </div>
 

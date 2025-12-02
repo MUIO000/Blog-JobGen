@@ -19,7 +19,7 @@ const AdminLogin = () => {
       await signInAdmin(email, password);
       navigate('/admin/dashboard');
     } catch (error) {
-      setError('登录失败：邮箱或密码错误');
+      setError('Login failed: Invalid email or password');
       console.error('Login error:', error);
     } finally {
       setLoading(false);
@@ -34,8 +34,8 @@ const AdminLogin = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-cyan-500 rounded-2xl mb-4">
             <Lock className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">管理员登录</h1>
-          <p className="text-slate-300">Blog-JobGen 内容管理系统</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Admin Login</h1>
+          <p className="text-slate-300">Blog-JobGen Content Management</p>
         </div>
 
         {/* Login Form */}
@@ -52,7 +52,7 @@ const AdminLogin = () => {
             {/* Email Input */}
             <div>
               <label className="block text-sm font-semibold text-white mb-2">
-                邮箱地址
+                Email Address
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -70,7 +70,7 @@ const AdminLogin = () => {
             {/* Password Input */}
             <div>
               <label className="block text-sm font-semibold text-white mb-2">
-                密码
+                Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -94,12 +94,12 @@ const AdminLogin = () => {
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>登录中...</span>
+                  <span>Signing in...</span>
                 </>
               ) : (
                 <>
                   <LogIn className="w-5 h-5" />
-                  <span>登录</span>
+                  <span>Sign In</span>
                 </>
               )}
             </button>
@@ -108,7 +108,7 @@ const AdminLogin = () => {
           {/* Info */}
           <div className="mt-6 pt-6 border-t border-white/10">
             <p className="text-xs text-slate-400 text-center">
-              仅限授权管理员访问。如需帮助，请联系系统管理员。
+              Authorized administrators only. Contact system admin for assistance.
             </p>
           </div>
         </div>
@@ -119,7 +119,7 @@ const AdminLogin = () => {
             onClick={() => navigate('/blog')}
             className="text-slate-300 hover:text-white text-sm font-medium transition-colors"
           >
-            ← 返回博客首页
+            ← Back to Blog
           </button>
         </div>
       </div>
