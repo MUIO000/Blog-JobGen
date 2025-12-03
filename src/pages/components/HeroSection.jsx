@@ -88,44 +88,18 @@ const HeroSection = ({ disableAnimations = false }) => {
 
   return (
     <motion.section 
-      className="relative w-full min-h-[90vh] flex flex-col justify-start items-center overflow-hidden pt-12 md:pt-14 perspective-1000"
+      className="relative w-full h-screen flex flex-col justify-center items-center overflow-hidden perspective-1000"
       style={{ backgroundColor: 'rgb(239, 250, 255)' }}
       initial={disableAnimations ? false : "hidden"}
       animate={disableAnimations ? false : "visible"}
       variants={disableAnimations ? undefined : staggerContainer}
     >
-      {/* A. Background Elements */}
-      
-      {/* Floating Orbs with Parallax */}
-      <motion.div 
-        className="absolute top-20 left-20 w-72 h-72 bg-sky-300/20 rounded-full blur-3xl"
-        style={{ x: orb1X, y: orb1Y }}
-        animate={disableAnimations ? undefined : {
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={disableAnimations ? undefined : {
-          scale: { duration: 8, repeat: Infinity, ease: "easeInOut" },
-          opacity: { duration: 8, repeat: Infinity, ease: "easeInOut" }
-        }}
-      />
-      <motion.div 
-        className="absolute bottom-20 right-20 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl"
-        style={{ x: orb2X, y: orb2Y }}
-        animate={disableAnimations ? undefined : {
-          scale: [1.2, 1, 1.2],
-          opacity: [0.4, 0.3, 0.4],
-        }}
-        transition={disableAnimations ? undefined : {
-          scale: { duration: 10, repeat: Infinity, ease: "easeInOut" },
-          opacity: { duration: 10, repeat: Infinity, ease: "easeInOut" }
-        }}
-      />
+      {/* A. Background Elements - Removed for pure solid color */}
 
-      <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-0 items-center h-full">
         
         {/* B. Left Content */}
-        <div className="space-y-8 text-center lg:text-left">
+        <div className="space-y-8 text-center lg:text-left lg:pr-8">
           {/* Badge with Hover Effect */}
           <motion.div 
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-sky-200 shadow-sm text-sm font-medium text-sky-700 cursor-default hover:shadow-md hover:border-sky-300 transition-all"
@@ -195,14 +169,14 @@ const HeroSection = ({ disableAnimations = false }) => {
           </motion.div>
         </div>
 
-        {/* C. Right Visual (Spline 3D Scene) */}
+        {/* C. Right Visual (Spline 3D Scene) - Full Height */}
         <motion.div 
-          className="hidden lg:block relative h-[600px] w-full perspective-1000"
+          className="hidden lg:block absolute right-0 top-0 h-full w-1/2 perspective-1000"
           initial={disableAnimations ? false : { opacity: 0, x: 20 }}
           animate={disableAnimations ? false : { opacity: 1, x: 0 }}
           transition={disableAnimations ? undefined : { duration: 1.2, delay: 0.2 }}
         >
-          <div className="relative h-full w-full rounded-2xl overflow-hidden bg-transparent">
+          <div className="relative h-full w-full bg-transparent">
             <Spline scene="https://prod.spline.design/i1odrbXEaFz7O0AK/scene.splinecode" />
           </div>
         
@@ -216,40 +190,6 @@ const HeroSection = ({ disableAnimations = false }) => {
         animate={disableAnimations ? false : { opacity: 1, y: 0 }}
         transition={disableAnimations ? undefined : { delay: 1.5, duration: 0.5 }}
       >
-        <span className="text-xs font-mono text-slate-400 mb-4 tracking-widest uppercase font-semibold">
-          Initialize Pipeline
-        </span>
-        {/* Animated Dotted Line */}
-        <div className="relative flex flex-col items-center">
-          <motion.div
-            className="flex flex-col gap-1 items-center"
-            animate={disableAnimations ? undefined : { 
-              y: [0, 8, 0],
-            }}
-            transition={disableAnimations ? undefined : {
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            <div className="w-1 h-1 rounded-full bg-sky-400"></div>
-            <div className="w-1 h-1 rounded-full bg-cyan-400"></div>
-            <div className="w-1 h-1 rounded-full bg-blue-400"></div>
-          </motion.div>
-          <motion.div
-            className="absolute top-3 flex flex-col gap-2"
-            animate={disableAnimations ? undefined : {
-              opacity: [0, 1, 0]
-            }}
-            transition={disableAnimations ? undefined : {
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            <ArrowDown className="w-5 h-5 text-sky-400" />
-          </motion.div>
-        </div>
       </motion.div>
     </motion.section>
   );

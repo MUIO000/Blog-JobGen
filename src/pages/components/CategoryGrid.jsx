@@ -105,14 +105,6 @@ const HeaderSection = () => {
               Curated resources to accelerate your career deployment.
             </p>
       </div>
-
-      <button
-        ref={buttonRef}
-        className={`hidden md:flex items-center gap-2 text-slate-600 font-semibold hover:text-cyan-600 transition-colors group category-css-animate-wrapper ${buttonVisible ? 'category-animate-fade-in-right' : ''}`}
-          >
-            View all archives
-            <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-      </button>
         </div>
   );
 };

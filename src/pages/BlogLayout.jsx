@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Linkedin, Twitter } from 'lucide-react';
+import { Linkedin, Twitter, Lock } from 'lucide-react';
 import { EXTERNAL_LINKS } from '../config/externalLinks';
 
 const BlogLayout = ({ children }) => {
@@ -10,7 +10,7 @@ const BlogLayout = ({ children }) => {
     <div className="min-h-screen bg-white">
       {/* Blog Header/Navbar */}
       <motion.header 
-        className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm"
+        className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
@@ -39,7 +39,17 @@ const BlogLayout = ({ children }) => {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-3">
-
+              {/* Admin Login - Subtle */}
+              <Link to="/admin/login">
+                <motion.button
+                  className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  title="Admin Login"
+                >
+                  <Lock className="w-4 h-4" />
+                </motion.button>
+              </Link>
 
               {/* Try Free Button */}
               <motion.button
